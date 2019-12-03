@@ -59,6 +59,11 @@ constexpr const auto FILE_EXTENSION = ".db3";
 
 namespace rosbag2_storage_plugins
 {
+SqliteStorage::~SqliteStorage()
+{
+  if (active_transaction_)
+    commit_transaction();
+}
 
 void SqliteStorage::open(
   const std::string & uri, rosbag2_storage::storage_interfaces::IOFlag io_flag)
@@ -118,7 +123,7 @@ void SqliteStorage::commit_transaction()
   int rc = -1;
 
   if (!active_transaction_) {
-    rc = sqlite3_exec(database_->get_db_handle(), "COMMIT;", NULL, 0, NULL);
+    rc = sqlite3_exec(database_->get_db_handle(), "END TRANSACTION;", NULL, 0, NULL);
     active_transaction_.store(false, std::memory_order_relaxed);
 
     // Reset batch insert counter
