@@ -44,7 +44,8 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC SqliteStorage
 public:
   SqliteStorage()
        :no_of_inserts(0) {};
-  ~SqliteStorage() override = default;
+
+  ~SqliteStorage() override;
 
   void open(
     const std::string & uri,
@@ -94,7 +95,7 @@ private:
   std::unordered_map<std::string, int> topics_;
   std::vector<rosbag2_storage::TopicMetadata> all_topics_and_types_;
   std::string relative_path_;
-  std::atomic_bool active_transaction_;
+  std::atomic_bool active_transaction_ {false};
   uint64_t no_of_inserts;
 };
 

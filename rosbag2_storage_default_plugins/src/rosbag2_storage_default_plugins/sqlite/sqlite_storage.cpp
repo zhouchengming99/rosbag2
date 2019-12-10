@@ -33,6 +33,8 @@
 
 #include "../logging.hpp"
 
+#define EN_TRANSACTION 1
+
 namespace
 {
 std::string to_string(rosbag2_storage::storage_interfaces::IOFlag io_flag)
@@ -61,6 +63,7 @@ namespace rosbag2_storage_plugins
 {
 SqliteStorage::~SqliteStorage()
 {
+  ROSBAG2_STORAGE_DEFAULT_PLUGINS_LOG_INFO_STREAM("destructor");
   if (active_transaction_)
     commit_transaction();
 }
@@ -111,8 +114,9 @@ void SqliteStorage::activate_transaction()
   int rc = -1;
 
   if (!active_transaction_) {
-    rc = sqlite3_exec(database_->get_db_handle(), "BEGIN TRANSACTION;", NULL, 0, NULL);
+    rc = sqlite3_exec(database_->get_db_handle(), "BEGIN;", NULL, 0, NULL);
     active_transaction_.store(true, std::memory_order_relaxed);
+    ROSBAG2_STORAGE_DEFAULT_PLUGINS_LOG_INFO_STREAM("begin transaction");
     if (rc != SQLITE_OK)
       throw SqliteException("Failed to initialize transaction");
   }
@@ -122,15 +126,16 @@ void SqliteStorage::commit_transaction()
 {
   int rc = -1;
 
-  if (!active_transaction_) {
-    rc = sqlite3_exec(database_->get_db_handle(), "END TRANSACTION;", NULL, 0, NULL);
+  if (active_transaction_) {
+    rc = sqlite3_exec(database_->get_db_handle(), "COMMIT;", NULL, 0, NULL);
     active_transaction_.store(false, std::memory_order_relaxed);
+    ROSBAG2_STORAGE_DEFAULT_PLUGINS_LOG_INFO_STREAM("end transaction");
 
     // Reset batch insert counter
     no_of_inserts = 0;
 
     if (rc != SQLITE_OK)
-      throw SqliteException("Failed to initialize transaction");
+      throw SqliteException("Failed to end transaction");
   }
 }
 
