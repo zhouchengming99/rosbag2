@@ -32,7 +32,7 @@ macro(build_zstd)
   ExternalProject_Add(zstd-1.4.4
     URL https://github.com/facebook/zstd/archive/v1.4.4.zip
     URL_MD5 3a5c3a535280b7f4dfdbd739fcc7173f
-    TIMEOUT 60
+    TIMEOUT 600
     SOURCE_SUBDIR build/cmake
     CMAKE_ARGS
       -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_install
